@@ -38,21 +38,16 @@ import string
 from urllib.parse import urlencode
 import spotifyClient
 import random
-try:
-    from keys import *
-except:
-    CLIENT_ID = os.environ['CLIENT_ID']
-    CLIENT_SECRET = os.environ['CLIENT_SECRET']
-    SECRET_KEY_APP = os.environ['SECRET_KEY_APP']
-    REDIRECT_URI = os.environ['REDIRECT_URI']
 
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG
 )
 
 
-
-
+# Client info
+CLIENT_ID = "9f46c2e01c414b5c8edf50a93e7fe7f6"
+CLIENT_SECRET = "dc62cd4e81fb4391ba8b52e52409df1e"
+REDIRECT_URI = "http://127.0.0.1:5000/callback"
 
 
 # Spotify API endpoints
@@ -63,7 +58,7 @@ ME_URL = 'https://api.spotify.com/v1/me'
 
 # Start 'er up
 app = Flask(__name__)
-app.secret_key = SECRET_KEY_APP
+app.secret_key = "tempfakekey141"
 
 
 @app.route('/')
@@ -89,18 +84,29 @@ def login(loginout):
     # Request authorization from user
     scope = 'user-read-private user-read-email user-library-read playlist-modify-public'
 
-    payload = {
-        'client_id': CLIENT_ID,
-        'response_type': 'code',
-        'redirect_uri': REDIRECT_URI,
-        'state': state,
-        'scope': scope,
-        'show_dialog': True,
-    }
+    if loginout == 'logout':
+        payload = {
+            'client_id': CLIENT_ID,
+            'response_type': 'code',
+            'redirect_uri': REDIRECT_URI,
+            'state': state,
+            'scope': scope,
+            'show_dialog': True,
+        }
+    elif loginout == 'login':
+        payload = {
+            'client_id': CLIENT_ID,
+            'response_type': 'code',
+            'redirect_uri': REDIRECT_URI,
+            'state': state,
+            'scope': scope,
+        }
+    else:
+        abort(404)
 
     res = make_response(redirect(f'{AUTH_URL}/?{urlencode(payload)}'))
     res.set_cookie('spotify_auth_state', state)
-    res.set_cookie('to_compare', original)
+
     return res
 
 
@@ -136,7 +142,7 @@ def callback():
         'refresh_token': res_data.get('refresh_token'),
     }
 
-    return redirect(url_for('finalize', original=request.cookies.get('to_compare')))
+    return redirect(url_for('me'))
 
 
 @app.route('/refresh')
@@ -191,57 +197,24 @@ def sync_all():
     return jsonify({"data": list(x), "count": len(x)})
 
 @app.route('/diff/<original>')
-def get_diff(original):
+def get_diff(original, new):
     if 'spotify:user:' not in original:
         original = 'spotify:user:' + original
-    
-    state = ''.join(
-        secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16)
-    )
 
-    # Request authorization from user
-    scope = 'user-read-private user-read-email user-library-read playlist-modify-public'
-
-    payload = {
-        'client_id': CLIENT_ID,
-        'response_type': 'code',
-        'redirect_uri': REDIRECT_URI,
-        'state': state,
-        'scope': scope,
-        'show_dialog': True,
-    }
-
-    res = make_response(redirect(f'{AUTH_URL}/?{urlencode(payload)}'))
-    res.set_cookie('spotify_auth_state', state)
-    res.set_cookie('to_compare', original)
-    return res
-
-@app.route('/finalize/<original>')
-def finalize(original):
-    if 'tokens' not in session:
-        app.logger.error('No tokens in session.')
-        abort(400)
-
-    headers = {'Authorization': f"Bearer {session['tokens'].get('access_token')}"}
-
-    res = requests.get(ME_URL, headers=headers)
-    res_data = res.json()
-    spotifyClient.add_user_to_db(res_data)
+    if 'spotify:user:' not in new:
+        new = 'spotify:user:' + new
 
     user1 = spotifyClient.get_all_songs_from_db(original)
     if len(user1) == 0:
         abort(400, 'user {} not found'.format(original))
 
-    user2 = spotifyClient.get_all_songs_from_db(res_data['uri'])
+    user2 = spotifyClient.get_all_songs_from_db(new)
 
     if len(user2) == 0:
-        abort(400, 'user {} not found'.format(res_data['uri']))
+        abort(400, 'user {} not found'.format(new))
         
     x = list(user1.intersection(user2))
-
-    playlistName = spotifyClient.get_user_by_uri(original)['name'] + " <> " + spotifyClient.get_user_by_uri(res_data['uri'])['name']
-    url = spotifyClient.create_playlist_from_diff(session['tokens'].get('access_token'), list(x), playlistName)
-    return redirect(url, code=302)
+    return jsonify({"data": x, "count": len(x)})
 
 @app.route('/getUser/<uri>')
 def get_user(uri):
@@ -259,6 +232,4 @@ def new_playlist():
     user2 = set(tmp[:50])
     diff = list(user1.intersection(user2))
     return jsonify(spotifyClient.create_playlist_from_diff(session['tokens'].get('access_token'), diff))
-
-if __name__ == "__main__":
-    app.run()
+app.run()
