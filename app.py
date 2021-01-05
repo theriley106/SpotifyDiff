@@ -100,7 +100,6 @@ def login(loginout):
 
     res = make_response(redirect(f'{AUTH_URL}/?{urlencode(payload)}'))
     res.set_cookie('spotify_auth_state', state)
-    res.set_cookie('to_compare', original)
     return res
 
 
