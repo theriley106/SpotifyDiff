@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
+    <style>
+        /* display this row with flex and use wrap (= respect columns' widths) */
+
+.row-flex {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+
+/* vertical spacing between columns */
+
+[class*="col-"] {
+  margin-bottom: 30px;
+}
+
+
+    </style>
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" type="text/css" rel="stylesheet">
+<link href="/static/bootstrap-social.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-light">
+        <div class="mr-auto">
+            <h4>SpotifyDiff</h4><p>Generate a playlist containing songs that are shared between 2 Spotify users
+            </p>
+            
+
+        </div>
+         <div class="ml-auto">
+            <a href="https://github.com/theriley106/SpotifyDiff" class="pull-right btn btn-lg btn-social btn-github" target="_blank">
+            <span class="fa fa-github"></span> View on Github
+            </a>
+         </div>
+      </nav>
+      <div class="container">
+        <div class="row row-flex">
+          <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="content">
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="content colour-2">
+                <center>
+              <img src="{{profilePic}}" height="200px" width="200px"/>
+            <h3><br>{{name}} wants to discover which songs you both listen to!</h3></center>
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="content">
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="content">
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="content colour-5">
+                    <center>
+                        <a href="/diff/{{uri}}">
+                            <img src="/static/button.png" width="300px"/>
+                        </a>
+              <p><br>Authenticate with Spotify to Access.</p></center>
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="content">
+            </div>
+          </div>
+        </div>
+      </div>
+    <footer class="page-footer font-small blue fixed-bottom">
+        <!-- Copyright -->
+        <div class="footer-copyright text-center py-3">© 2020 Copyright:
+           <a href="http://www.christopherlambert.me/" target="_blank"> Christopher Lambert</a>
+        </div>
+        <!-- Copyright -->
+     </footer>
+  </body>
+</html>

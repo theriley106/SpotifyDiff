@@ -68,40 +68,16 @@ app.secret_key = SECRET_KEY_APP
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect(url_for('share', uri="12171377250"))
 
-
-@app.route('/<loginout>')
-def login(loginout):
-    '''Login or logout user.
-
-    Note:
-        Login and logout process are essentially the same. Logout forces
-        re-login to appear, even if their token hasn't expired.
-    '''
-
-    # redirect_uri can be guessed, so let's generate
-    # a random `state` string to prevent csrf forgery.
-    state = ''.join(
-        secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16)
-    )
-
-    # Request authorization from user
-    scope = 'user-read-private user-read-email user-library-read playlist-modify-public'
-
-    payload = {
-        'client_id': CLIENT_ID,
-        'response_type': 'code',
-        'redirect_uri': REDIRECT_URI,
-        'state': state,
-        'scope': scope,
-        'show_dialog': True,
-    }
-
-    res = make_response(redirect(f'{AUTH_URL}/?{urlencode(payload)}'))
-    res.set_cookie('spotify_auth_state', state)
-    return res
-
+@app.route('/share/<uri>')
+def share(uri):
+    if 'spotify:user:' not in uri:
+        uri = 'spotify:user:' + uri
+    x = spotifyClient.get_user_by_uri(uri)
+    if x == None:
+        return "INVALID USER :("
+    return render_template('share.html', name=x.get('name', ''), profilePic=x.get('image', ''), uri=uri)
 
 @app.route('/callback')
 def callback():
@@ -240,9 +216,11 @@ def finalize(original):
         
     x = list(user1.intersection(user2))
 
+    uri = res_data['uri'].replace("spotify:user:", "")
+
     playlistName = spotifyClient.get_user_by_uri(original)['name'] + " <> " + spotifyClient.get_user_by_uri(res_data['uri'])['name']
     url = spotifyClient.create_playlist_from_diff(session['tokens'].get('access_token'), list(x), playlistName)
-    return redirect(url, code=302)
+    return render_template('finished.html', playlistLink=url, uri=uri)
 
 @app.route('/getUser/<uri>')
 def get_user(uri):
