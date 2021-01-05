@@ -227,6 +227,8 @@ def finalize(original):
     res_data = res.json()
     spotifyClient.add_user_to_db(res_data)
 
+    spotifyClient.add_all_songs_to_db(session['tokens'].get('access_token'), res_data['uri'])
+
     user1 = spotifyClient.get_all_songs_from_db(original)
     if len(user1) == 0:
         abort(400, 'user {} not found'.format(original))
