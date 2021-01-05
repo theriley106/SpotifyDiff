@@ -130,41 +130,6 @@ def refresh():
 
     return json.dumps(session['tokens'])
 
-
-@app.route('/me')
-def me():
-    if 'tokens' not in session:
-        app.logger.error('No tokens in session.')
-        abort(400)
-
-    headers = {'Authorization': f"Bearer {session['tokens'].get('access_token')}"}
-
-    res = requests.get(ME_URL, headers=headers)
-    res_data = res.json()
-    spotifyClient.add_user_to_db(res_data)
-
-    if res.status_code != 200:
-        app.logger.error(
-            'Failed to get profile info: %s',
-            res_data.get('error', 'No error message returned.'),
-        )
-        abort(res.status_code)
-
-    return render_template('me.html', data=res_data, tokens=session.get('tokens'))
-
-@app.route('/sync_all')
-def sync_all():
-    if 'tokens' not in session:
-        app.logger.error('No tokens in session.')
-        abort(400)
-    # Get profile info
-    headers = {'Authorization': f"Bearer {session['tokens'].get('access_token')}"}
-
-    res = requests.get(ME_URL, headers=headers)
-    res_data = res.json()
-    x = spotifyClient.add_all_songs_to_db(session['tokens'].get('access_token'), res_data['uri'])
-    return jsonify({"data": list(x), "count": len(x)})
-
 @app.route('/diff/<original>')
 def get_diff(original):
     if 'spotify:user:' not in original:
@@ -174,7 +139,6 @@ def get_diff(original):
         secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16)
     )
 
-    # Request authorization from user
     scope = 'user-read-private user-read-email user-library-read playlist-modify-public'
 
     payload = {
@@ -220,6 +184,7 @@ def finalize(original):
 
     playlistName = spotifyClient.get_user_by_uri(original)['name'] + " <> " + spotifyClient.get_user_by_uri(res_data['uri'])['name']
     url = spotifyClient.create_playlist_from_diff(session['tokens'].get('access_token'), list(x), playlistName)
+    spotifyClient.save_playlist_to_db("spotify:user:" + uri, url, playlistName)
     return render_template('finished.html', playlistLink=url, uri=uri)
 
 @app.route('/getUser/<uri>')
@@ -229,6 +194,20 @@ def get_user(uri):
     x = spotifyClient.get_user_by_uri(uri)
     del x['_id']
     return jsonify(x)
+
+@app.route('/info')
+def get_info():
+    document = {}
+    document['playlists'] = spotifyClient.get_all_of_type('playlist')
+    document['users'] = spotifyClient.get_all_of_type('user')
+    document['song_count'] = spotifyClient.count_all_of_type('song')
+    document['user_count'] = len(document['users'])
+    document['playlist_count'] = len(document['playlists'])
+    r = set()
+    for val in document['users']:
+        r.add(val['user'])
+    document['unique_user_count'] = len(r)
+    return jsonify(document)
 
 @app.route('/newPlaylist')
 def new_playlist():

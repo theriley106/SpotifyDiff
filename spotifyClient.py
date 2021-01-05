@@ -65,6 +65,27 @@ def get_user_by_uri(uri):
     for val in collection.find({'user': uri, 'type': 'user'}).sort("created_at",pymongo.DESCENDING):
 	    return val
 
+def save_playlist_to_db(uri, playlisturl, playlistname):
+    document = {}
+    document['user'] = uri
+    document['playlist'] = playlisturl
+    document['playlist_name'] = playlistname
+    document['type'] = 'playlist'
+    collection.insert_one(document)
+
+def get_all_of_type(typeVal):
+    e = []
+    for val in collection.find({'type': typeVal}).sort("created_at",pymongo.DESCENDING):
+	    e.append(val)
+    for v in e:
+        del v['_id']
+    return e
+
+def count_all_of_type(typeVal):
+    e = 0
+    for val in collection.find({'type': typeVal}).sort("created_at",pymongo.DESCENDING):
+	    e += 1
+    return e
 
 def get_all_songs_from_db(uri):
     e = set()
