@@ -53,7 +53,7 @@ logging.basicConfig(
 
 
 
-FAKE_RUN = not True
+FAKE_RUN = False
 
 # Spotify API endpoints
 AUTH_URL = 'https://accounts.spotify.com/authorize'
@@ -167,7 +167,7 @@ def finalize(original):
         userTwoCount = 111
         overlap = 24
         url = 'url'
-        uri = 'uri'
+        uri = 'uri' * 50
         playlistName = "CHRISTOPHER <> MATTHEW"
     else:
         res = requests.get(ME_URL, headers=headers)
