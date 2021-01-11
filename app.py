@@ -53,7 +53,7 @@ logging.basicConfig(
 
 
 
-
+FAKE_RUN = not True
 
 # Spotify API endpoints
 AUTH_URL = 'https://accounts.spotify.com/authorize'
@@ -162,30 +162,47 @@ def finalize(original):
         abort(400)
 
     headers = {'Authorization': f"Bearer {session['tokens'].get('access_token')}"}
+    if FAKE_RUN:
+        userOneCount = 123
+        userTwoCount = 111
+        overlap = 24
+        url = 'url'
+        uri = 'uri'
+        playlistName = "CHRISTOPHER <> MATTHEW"
+    else:
+        res = requests.get(ME_URL, headers=headers)
+        res_data = res.json()
+        spotifyClient.add_user_to_db(res_data)
 
-    res = requests.get(ME_URL, headers=headers)
-    res_data = res.json()
-    spotifyClient.add_user_to_db(res_data)
+        spotifyClient.add_all_songs_to_db(session['tokens'].get('access_token'), res_data['uri'])
 
-    spotifyClient.add_all_songs_to_db(session['tokens'].get('access_token'), res_data['uri'])
+        user1 = spotifyClient.get_all_songs_from_db(original)
+        if len(user1) == 0:
+            abort(400, 'user {} not found'.format(original))
 
-    user1 = spotifyClient.get_all_songs_from_db(original)
-    if len(user1) == 0:
-        abort(400, 'user {} not found'.format(original))
+        user2 = spotifyClient.get_all_songs_from_db(res_data['uri'])
 
-    user2 = spotifyClient.get_all_songs_from_db(res_data['uri'])
+        if len(user2) == 0:
+            abort(400, 'user {} not found'.format(res_data['uri']))
 
-    if len(user2) == 0:
-        abort(400, 'user {} not found'.format(res_data['uri']))
-        
-    x = list(user1.intersection(user2))
+        userOneCount = len(user1)
+        userTwoCount = len(user2)
+            
+        x = list(user1.intersection(user2))
 
-    uri = res_data['uri'].replace("spotify:user:", "")
+        overlap = len(x)
 
-    playlistName = spotifyClient.get_user_by_uri(original)['name'] + " <> " + spotifyClient.get_user_by_uri(res_data['uri'])['name']
-    url = spotifyClient.create_playlist_from_diff(session['tokens'].get('access_token'), list(x), playlistName)
-    spotifyClient.save_playlist_to_db("spotify:user:" + uri, url, playlistName)
-    return render_template('finished.html', playlistLink=url, uri=uri)
+        uri = res_data['uri'].replace("spotify:user:", "")
+
+        playlistName = spotifyClient.get_user_by_uri(original)['name'] + " <> " + spotifyClient.get_user_by_uri(res_data['uri'])['name']
+        url = spotifyClient.create_playlist_from_diff(session['tokens'].get('access_token'), list(x), playlistName)
+        spotifyClient.save_playlist_to_db("spotify:user:" + uri, url, playlistName)
+    try:
+        user1Name, user2Name = playlistName.split(" <> ")
+    except:
+        user1Name, user2Name = "", ""
+    info = {'user1': {'name': user1Name.title(), 'songs': userOneCount}, 'user2': {'name': user2Name.title(), 'songs': userTwoCount}}
+    return render_template('finished.html', playlistLink=url, uri=uri, overlap=overlap, playlistName=playlistName, info=info)
 
 @app.route('/getUser/<uri>')
 def get_user(uri):

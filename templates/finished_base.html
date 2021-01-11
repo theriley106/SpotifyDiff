@@ -22,7 +22,6 @@
 
 [class*="col-"] {
   margin-bottom: 30px;
-  margin-top: 10px;
 }
 
 
@@ -31,37 +30,31 @@
 <link href="/static/bootstrap-social.css" rel="stylesheet">
   </head>
   <body>
-    <div class="container"> 
-      <div class="row">
-           <div class="col-md-12 text-md-right text-center">
-  
-              <a href="https://github.com/theriley106/SpotifyDiff" class="btn btn-lg btn-social btn-github" target="_blank">
-              <span class="fa fa-github"></span> View on Github
-              </a>
-           </div>
-  
-          </div>
-      </div>
+    <nav class="navbar navbar-light">
+        <div class="mr-auto">
+            <h4>SpotifyDiff</h4><p>Generate a playlist containing songs that are shared between 2 Spotify users
+            </p>
+            
+
+        </div>
+         <div class="ml-auto">
+            <a href="https://github.com/theriley106/SpotifyDiff" class="pull-right btn btn-lg btn-social btn-github" target="_blank">
+            <span class="fa fa-github"></span> View on Github
+            </a>
+         </div>
+      </nav>
       <div class="container">
         <div class="row row-flex">
-          <div class="col-md-12 col-sm-6 col-xs-12">
+          <div class="col-md-4 col-sm-6 col-xs-12">
             <div class="content">
-              <center>
-              <h5>{{playlistName}}</h5>
-              Songs in Common: <br>
-              <h1>{{overlap}}</h1>
-                <b>Similarity %</b><br><pre>(overlap / library_size)</pre>
-              {{info.user1.name}}: <b>{{'{0:.2f}'.format((overlap|float / info.user1.songs|float) * 100)}}%</b><br>
-              {{info.user2.name}}: <b>{{'{0:.2f}'.format((overlap|float / info.user2.songs|float) * 100)}}%</b>
-                <br>
-
-            </center>
             </div>
           </div>
-          <div class="col-md-12 col-sm-6 col-xs-12">
+          <div class="col-md-4 col-sm-6 col-xs-12">
             <div class="content colour-2">
                 <center>
-            <h1><a href="{{playlistLink}}" target="_blank">View Playlist</a></h1></center>
+              <img src="/static/logo.png" height="200px"/>
+
+            <h1><br><a href="{{playlistLink}}" target="_blank">View Playlist</a></h1></center>
             </div>
           </div>
         </div>
